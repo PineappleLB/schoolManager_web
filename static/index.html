@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+	<title>学籍管理系统登录</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/toastr.min.css" />
+	<style>
+		.form-group{
+			position: relative;
+		}
+		.form-control{
+			padding-left: 50px;
+		}
+		.font{
+			height: 20px;
+			line-height: 20px;
+			font-size: 20px;
+			position: absolute;
+			left: 15px;
+			top: 6px;
+		}
+		.img-group div{
+			padding: 0;
+		}
+		.col-lg-3 img{
+			width: 100%;
+			height: 34px;
+			border: 1px solid #ccc;
+			box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+			border-radius: 4px;
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<div class="container">
+			<div class="row container-fluid">
+				<div class="col-lg-6 col-lg-offset-3 text-center">
+					<form action="" method="post" id="loginForm" @keydown.13="submitForm()">
+						<input type="hidden" name="sessionId" v-model="sessionId"/>
+						<div class="row form-group">
+							<img src="img/head.jpg" />
+						</div>
+						<div class="row form-group">
+							<input type="text" class="form-control" name="account" v-model="account" placeholder=" 请输入账号" />
+							<i class="glyphicon glyphicon-user font"></i>
+						</div>
+						<div class="row form-group">
+							<input type="password" class="form-control" name="password" v-model="password" placeholder=" 请输入密码" />
+							<i class="glyphicon glyphicon-lock font"></i>
+						</div>
+						<div class="row form-group img-group">
+							<div class="col-lg-9 col-md-9 col-sm-9 col-xs-8">
+								<input type="text" maxlength="4" v-model="imgCode" name="imgCode" placeholder="请输入图片验证码" class="form-control" />
+								<i class="glyphicon glyphicon-pencil font"></i>
+							</div>
+							<div class="col-lg-3 col-md-3 col-sm-3 col-xs-4">
+								<img id="img" v-bind:src="SERVER_ADDRESS+'/login/captcha?sessionId='+sessionId" @click="changeImgCode()" />
+							</div>
+						</div>
+						<div class="row form-group">
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input type="button" id="loginButton" class="btn btn-primary btn-block" @click="submitForm()" value="登录系统" />
+							</div>
+							<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+								<input type="reset" class="btn btn-primary btn-block" value="重置表单" />
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/jquery.cookie.js"></script>
+<script src="js/uuid.js"></script>
+<script src="js/vue.js"></script>
+<script src="js/toastr.min.js"></script>
+<script src="js/common.js"></script>
+<script>
+	toastr.options={
+		positionClass: 'toast-top-center',//如toast-bottom-right表示下右、toast-bottom-center表示下中、toast-top-center表示上中等
+		showDuration: "300",//显示动作时间 
+		hideDuration: "1000",//隐藏动作时间 
+		timeOut: "1000",//自动关闭超时时间 
+	}
+//	 toastr.success('提交数据成功');
+// 	toastr.error('Error');
+// 	toastr.warning('只能选择一行进行编辑');
+// 	toastr.info('info');
+	var app = new Vue({
+		el: '#app',
+		data: {
+			sessionId:'',
+			account:'',
+			password:'',
+			imgCode:'',
+			VIEW_ADDRESS:VIEW_ADDRESS,
+			BASE_ADDRESS:BASE_ADDRESS,
+			SERVER_ADDRESS:SERVER_ADDRESS
+		},
+		methods:{
+			changeImgCode: function(){
+				var img = document.getElementById('img');
+				img.setAttribute('src',SERVER_ADDRESS+"/login/captcha?sessionId="+this.sessionId+"&random="+uuid(4,4));
+			},
+			submitForm: function(){
+				$('#loginButton').val("loading...");
+				$('#loginButton').attr('disabled','disabled');
+				setTimeout(function(){
+					$('#loginButton').val("登录系统");
+					$('#loginButton').removeAttr('disabled');
+				},1000);
+				if(!this.account){
+					toastr.error("账号不能为空！");
+					app.changeImgCode();
+					return false;
+				} else if(!this.password){
+					toastr.error("密码不能为空！");
+					app.changeImgCode();
+					return false;
+				} else if(!this.imgCode || this.imgCode.length!=4){
+					toastr.error("请输入四位图片验证码！");
+					app.changeImgCode();
+					return false;
+				}
+				$.post(SERVER_ADDRESS+"/login/", $('#loginForm').serialize(), function(resp){
+					if(resp.code === 0){
+						toastr.success("登陆成功，即将跳转到首页！");
+						var user = resp.data;
+						// console.log(user);
+						$.cookie("CLUB_PINEA_USER", JSON.stringify(user), { expires: 7 });
+						setTimeout(function(){
+							location.href=BASE_ADDRESS+"/home.html";
+						},2200);
+					} else {
+						toastr.error(resp.message);
+						app.changeImgCode();
+					}
+				})
+				return false;
+			}
+		},
+		created: function(){
+			var sessionId = $.cookie("CLUB_PINEA_sessionId");
+			if(!sessionId){
+				this.sessionId = uuid(16, 16);
+				$.cookie("CLUB_PINEA_sessionId", this.sessionId, { expires: 7 });
+			} else {
+				this.sessionId = sessionId;
+			}
+		}
+	});
+</script>
+</html>

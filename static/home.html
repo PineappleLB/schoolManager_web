@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>学籍管理系统</title>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+	<link rel="stylesheet" href="css/toastr.min.css" />
+	<style>
+		.headnav{
+			background: #31B0D5;
+		}
+		.row{
+			width: 100%;
+		}
+		.col-lg-2 .btn-group{
+			line-height: 45px;
+			height: 45px;
+		}
+		.col-lg-2 .btn-group .btn-default{
+			display: inline-block;
+			margin-top: 8px;
+		}
+		.nav{
+			margin:5px 0;
+		}
+		.nav li a{
+			text-indent: 0.3em;
+		}
+	</style>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/toastr.min.js"></script>
+	<script src="js/jquery.cookie.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/vue.js"></script>
+	<script src="js/uuid.js"></script>
+	<script src="js/common.js"></script>
+	<script>
+// 		var menuList;
+// 		//请求菜单数据接口
+// 		$ajaxPost(SERVER_ADDRESS+"main/menuList", {
+// 			sessionId: this.sessionId
+// 		},function(resp){
+// 			if(resp.code === SUCCESS_CODE){
+// 				console.log(resp.data)
+// 				menuList = resp.data;
+// 			} else {
+// 				toastr.error(resp.message);
+// 			}
+// 		},function(resp){
+// 			console.log(resp)
+// 		},true);
+	</script>
+</head>
+<body>
+	<div id="app">
+		<!-- 头部导航栏 -->
+		<div class="headnav">
+			<div class="row container">
+				<div class="col-lg-2" align="center">
+					<img src="img/logo_header.jpg" />
+				</div>
+				<div class="col-lg-8">
+					<h3 align="center">
+						老九学堂学籍管理系统
+					</h3>
+				</div>
+				<div class="col-lg-2">
+					<!-- Single button -->
+					<label v-html="user.roleId==1?'管理员: ':user.roleId==2?'教师: ':'学生: '"></label>
+					<div class="btn-group">
+					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						菠萝 <span class="caret"></span>
+					  </button>
+					  <ul class="dropdown-menu">
+						<li><a href="javascript:void(0);" @click="exit()">注销</a></li>
+						<li><a href="javascript:void(0);" @click="exit()">退出系统</a></li>
+					  </ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="centernav">
+			<div class="" style="height: 100%;">
+				<div class="col-lg-2" style="height: 100%;background: lightgray;">
+					<ul class="nav nav-pills nav-stacked nav-bracket">
+						<li class="active"  @click="doAction(VIEW_ADDRESS+'/homeFrame.html', $event)"><a href="javascript:void(0);"><i class="glyphicon glyphicon-home"></i> <span>主页</span></a></li>
+						<li class="nav-parent" v-for="item in getMenuList()" @click="doAction(VIEW_ADDRESS + item.url, $event)">
+							<a href="javascript:void(0);"><i class="glyphicon glyphicon-tags"></i> <span v-html="item.mname"></span></a>
+						</li>
+					</ul>
+				</div>
+				<!-- iframe -->
+				<div class="col-lg-10" style="height: 99%;">
+					<iframe class="" name="iframe" id="iframe" src="view/homeFrame.html" scrolling="auto" frameborder="0" reload="undefined" class="" style="width:100%;height:100%"></iframe>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+</body>
+
+<script>
+	toastr.options={
+		positionClass: 'toast-top-center',//如toast-bottom-right表示下右、toast-bottom-center表示下中、toast-top-center表示上中等
+		showDuration: "300",//显示动作时间 
+		hideDuration: "1000",//隐藏动作时间 
+		timeOut: "1000",//自动关闭超时时间 
+	}
+	var app = new Vue({
+		el: '#app',
+		data: {
+			sessionId:"",
+			menu:'',
+			user: "",
+			SERVER_ADDRESS:SERVER_ADDRESS,
+			VIEW_ADDRESS:VIEW_ADDRESS,
+			BASE_ADDRESS:BASE_ADDRESS
+		},
+		methods:{
+			//获取菜单列表
+			getMenuList:function(){
+				if(this.menu){
+					return this.menu;
+				} else {
+					var menu;
+					//请求菜单数据接口
+					$ajaxPost(SERVER_ADDRESS+"/main/menuList", {
+						sessionId: this.sessionId
+					},function(resp){
+						if(resp.code === SUCCESS_CODE){
+							console.log(resp.data)
+							menu = resp.data;
+						} else {
+							toastr.error(resp.message);
+						}
+					},function(resp){
+						console.log(resp)
+					},false);
+					this.menu = menu;
+					return menu;
+				}
+			},
+			//请求子页面
+			doAction: function(url, event){
+				var source = event.currentTarget;
+				$('.active').removeClass('active');
+				$(source).addClass('active');
+				console.log(url);
+				$('#iframe').attr('src',url);
+			},
+			exit: function(){
+				$ajaxPost(SERVER_ADDRESS+"/login/logout",{
+					sessionId:this.sessionId
+				},function(resp){
+					if(resp.code === 200){
+						location.href=BASE_ADDRESS+"/index.html";
+					} else {
+						toastr.error(resp.message);
+					}
+				})
+				
+			}
+		},
+		created: function(){
+			var sessionId = $.cookie("CLUB_PINEA_sessionId");
+			if(!sessionId){
+				this.sessionId = uuid(16, 16);
+				$.cookie("CLUB_PINEA_sessionId", this.sessionId, { expires: 7 });
+			} else {
+				this.sessionId = sessionId;
+			}
+			var user = $.cookie("CLUB_PINEA_USER");
+			if(user){
+				this.user = eval('('+user+')');
+			}
+			var height = document.documentElement.clientHeight - 56;
+			$('.centernav').css('height',height+"px");
+		}
+	});
+		
+	
+</script>
+</html>
