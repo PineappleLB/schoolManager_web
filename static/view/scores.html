@@ -53,8 +53,9 @@
 								</div>
 							</div>
 							<div class="col-sm-3 col-md-3 pull-right text-right">
-								<a href="javascript:void(0)" class="btn btn-primary" onclick="do_from(1)"><i class="fa fa-search"></i> 查询</a>
-								<a href="javascript:void(0)" class="btn btn-primary" onclick="clear_input()"><i class="fa fa-remove"></i> 清空</a>
+								<a href="javascript:void(0)" class="btn btn-primary" @click="search()"><i class="fa fa-search"></i> 查询</a>
+								<a href="javascript:void(0)" class="btn btn-primary" @click="clear_input()"><i class="fa fa-remove"></i> 清空</a>
+								<a href="javascript:void(0)" class="btn btn-primary" @click="insertInfo()"><i class="fa fa-remove"></i> 新增</a>
 							</div>
 						</div>
 						<!-- row-->
@@ -74,10 +75,29 @@
 									<th>专业</th>
 									<th>分数</th>
 									<th>学科</th>
+									<th v-if="editable">操作</th>
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
+								<tr v-for="item in showItems()">
+									<td v-html="item.id"></td>
+									<td v-html="item.name"></td>
+									<td v-html="item.gender==0?'男':'女'"></td>
+									<td v-html="item.specialty"></td>
+									<td v-if="editable" style="width: 15%;">
+										<div contenteditable="true" v-html="item.score" class="form-control"></div>
+										<!-- <input type="number" class="form-control" style="width: 80px;display: inline-block;" v-bind:value="item.score" /> -->
+									</td>
+									<td v-else v-html="item.score"></td>
+									<td v-html="item.course"></td>
+									<td v-if="editable" style="width: 15%;">
+										<div class="btn btn-success btn-xs">保存修改</div>
+										<div class="btn btn-danger btn-xs">删除数据</div>
+										<!-- <input type="button" class="btn btn-xs btn-success" value="保存修改" />
+										<input type="button" class="btn btn-xs btn-danger" value="删除数据" /> -->
+									</td>
+								</tr>
+								<!-- <tr>
 									<td>1</td>
 									<td>菠萝</td>
 									<td>男</td>
@@ -140,15 +160,7 @@
 									<td>计算机</td>
 									<td>80</td>
 									<td>计算机</td>
-								</tr>
-								<tr>
-									<td>1</td>
-									<td>菠萝</td>
-									<td>男</td>
-									<td>计算机</td>
-									<td>80</td>
-									<td>计算机</td>
-								</tr>
+								</tr> -->
 							</tbody>
 						</table>
 					</div>
@@ -156,19 +168,21 @@
 						<div class="col-lg-7 col-md-8">
 							<nav aria-label="Page navigation ">
 								<ul class="pagination">
-									<li><span>当前为第{{pageIndex}}页,总页数为{{pageCount}},总记录为0条,每页10条</span>&nbsp;</li>
+									<li><span>当前为第{{pageIndex}}页,总页数为{{pageCount}},总记录为{{items.length}}条,每页10条</span>&nbsp;</li>
 									<li>
-										<a href="#" aria-label="Previous" id="prev" @click="changePage(pageIndex - 1)">
+										<a href="javascript:void(0)" aria-label="Previous" id="prev" @click="changePage(pageIndex - 1)">
 											<span aria-hidden="true">上一页</span>
 										</a>
 									</li>
 									<template v-for="index in pageCount">
-										<li>
-											<a type="button" v-if="index < pageIndex + 6 &&  index > pageIndex - 6" @click="changePage(index)" id="current" :class="index == pageIndex ? 'active' : ''">{{index}}</a>
+										<li v-if="index == pageIndex + 5"><a href="javascript:void(0)">...</a></li>
+										<li v-if="index < pageIndex + 5 &&  index > pageIndex - 5">
+											<a href="javascript:void(0)" @click="changePage(index)" id="current" :class="index == pageIndex ? 'active' : ''">{{index}}</a>
 										</li>
+										<li v-if="index == pageIndex - 5"><a href="javascript:void(0)">...</a></li>
 									</template>
 									<li disabled="disabled">
-										<a href="#" aria-label="Next" id="next" @click="changePage(pageIndex + 1)">
+										<a href="javascript:void(0)" aria-label="Next" id="next" @click="changePage(pageIndex + 1)">
 											<span aria-hidden="true">下一页</span>
 										</a>
 									</li>
@@ -184,7 +198,7 @@
 											<input type="number" class="form-control" style="display: inline-block;width: 70px;" v-model="targetPageIndex" id="targetPageIndex" />
 										</a>
 									</li>
-									<li><a type="button" href="javascript:void(0);" @click="changePage(targetPageIndex)">确认</a></li>
+									<li><a href="javascript:void(0);" @click="changePage(targetPageIndex)">确认</a></li>
 								</ul>
 							</nav>
 						</div>
@@ -197,26 +211,57 @@
 	</body>
 	<script>
 		var toastr = parent.toastr;
+		
+		var students = [{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'},
+						{id:1,name:'菠萝',gender:0,specialty:'计算机',score:80,course:'计算机'}];
+		
+		
 		var app = new Vue({
 			el: '#app',
 			data: {
-				sessionId:parent.app.sessionId,
-				SERVER_ADDRESS:SERVER_ADDRESS,
-				VIEW_ADDRESS:VIEW_ADDRESS,
-				BASE_ADDRESS:BASE_ADDRESS,
-				coursesType:'',
-				name:'',
-				scoreScope:'',
-				items:[],
-				pageIndex:1,
-				targetPageIndex:1,
-				pageCount:1
+				sessionId:'',						//cookie中的个人信息
+				SERVER_ADDRESS:SERVER_ADDRESS,		//服务器请求地址
+				VIEW_ADDRESS:VIEW_ADDRESS,			//页面的地址
+				BASE_ADDRESS:BASE_ADDRESS,			//页面服务器地址
+				coursesType:'',						//课程类型
+				name:'',							//学生姓名
+				scoreScope:'',						//分数区间
+				items:students,						//数据
+				editable: true,					//是否可以编辑数据
+				pageIndex:1,						//当前页面页标
+				targetPageIndex:1,					//跳转到的目标页标
+				pageCount:Math.ceil(students.length/10)//总页数
 			},
 			methods:{
+				//翻页
 				changePage:function(index){
 					this.pageIndex = index;
 					this.showItems();
 				},
+				//展示数据
 				showItems:function(){
 					if(this.pageIndex > this.pageCount || this.pageIndex <= 0){
 						this.pageIndex = 1;
@@ -225,10 +270,18 @@
 					}
 					var showItems = this.items.slice((this.pageIndex - 1) * 10, this.pageIndex * 10)
 					return showItems;
+				},
+				//清空表单
+				clear_input: function(){
+					$('#searchFrom')[0].reset();
+				},
+				//按条件查询信息
+				search: function(){
+					//TODO dopost
 				}
 			},
 			created: function(){
-				
+				//TODO 获取后台数据,获取是否显示操作列表
 			}
 		});
 		
