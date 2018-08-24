@@ -66,10 +66,10 @@
 				</div>
 				<div class="col-lg-2">
 					<!-- Single button -->
-					<label v-html="user.roleId==1?'管理员: ':user.roleId==2?'教师: ':'学生: '"></label>
+					<label class="label label-default" v-html="user.roleId==1?'管理员':user.roleId==2?'教师':'学生'"></label>：
 					<div class="btn-group">
 					  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						菠萝 <span class="caret"></span>
+						<span v-html="user.account"></span> <span class="caret"></span>
 					  </button>
 					  <ul class="dropdown-menu">
 						<li><a href="javascript:void(0);" @click="exit()">注销</a></li>
@@ -178,7 +178,7 @@
 			$('.centernav').css('height',height+"px");
 		}
 	});
-		
+	
 	
 </script>
 </html>

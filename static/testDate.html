@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<style>
+
+	</style>
+	<link href="element-ui@2.4.6/lib/theme-chalk/index.css" rel="stylesheet" />
+	<!-- <link href="css/element-ui.min.css" rel="stylesheet" /> -->
+</head>
+
+<body>
+	<div id="app">
+		<template>
+			<div class="block">
+				<span class="demonstration">默认</span>
+				<el-date-picker v-model="value1" type="datetime" placeholder="选择日期时间">
+				</el-date-picker>
+			</div>
+			<div class="block">
+				<span class="demonstration">带快捷选项</span>
+				<el-date-picker v-model="value2" type="datetime" placeholder="选择日期时间">
+				</el-date-picker>
+			</div>
+			<div class="block">
+				<span class="demonstration">设置默认时间</span>
+				<el-date-picker v-model="value3" type="datetime" placeholder="选择日期时间">
+				</el-date-picker>
+			</div>
+		</template>
+	</div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue-v2.5.17.js"></script>
+<script src="element-ui@2.4.6/lib/index.js"></script>
+<!-- <script src="js/vue.js"></script>
+<script src="js/element-ui.min.js"></script> -->
+<script src="js/common.js"></script>
+<script>
+
+</script>
+<script>
+// 	var Main = {
+// 		data() {
+// 			return {
+// 				pickerOptions1: {
+// 					shortcuts: [{
+// 						text: '今天',
+// 						onClick(picker) {
+// 							picker.$emit('pick', new Date());
+// 						}
+// 					}, {
+// 						text: '昨天',
+// 						onClick(picker) {
+// 							const date = new Date();
+// 							date.setTime(date.getTime() - 3600 * 1000 * 24);
+// 							picker.$emit('pick', date);
+// 						}
+// 					}, {
+// 						text: '一周前',
+// 						onClick(picker) {
+// 							const date = new Date();
+// 							date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+// 							picker.$emit('pick', date);
+// 						}
+// 					}]
+// 				},
+// 				value1: '',
+// 				value2: '',
+// 				value3: ''
+// 			};
+// 		}
+// 	};
+	// var Ctor = Vue.extend(Main);
+	// new Ctor().$mount('#app');
+	var app = new Vue({
+		el: '#app',
+		data: {
+			value1: '',
+			value2: '',
+			value3: ''
+		},
+		methods: {
+
+		},
+		created: function () {
+
+		}
+	})
+</script>
+
+</html>

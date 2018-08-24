@@ -1,40 +1,452 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8"/>
-		<link href="../css/bootstrap.min.css" rel="stylesheet" />
-		<link href="../css/toastr.min.css" rel="stylesheet" />
-		<style>
-			
-		</style>
-		<script src="../js/jquery.min.js"></script>
-		<script src="../js/toastr.min.js"></script>
-		<script src="../js/jquery.cookie.js"></script>
-		<script src="../js/bootstrap.min.js"></script>
-		<script src="../js/vue.js"></script>
-		<script src="../js/uuid.js"></script>
-		<script src="../js/common.js"></script>
-	</head>
-	<body>
-		<div id="app">
-			
+
+<head>
+	<meta charset="utf-8" />
+	<link href="../css/bootstrap.min.css" rel="stylesheet" />
+	<link href="../css/toastr.min.css" rel="stylesheet" />
+	<link href="../css/bootstrap-datetimepicker.css" rel="stylesheet" />
+	<style>
+		.table thead tr th {
+			text-align: center;
+		}
+		.row form .form-group div{
+			text-align: right;
+		}
+		.row form .form-group .col-md-3{
+			height: 34px;
+			line-height: 34px;
+		}
+		.row form .form-group{
+			height: 40px;
+		}
+	</style>
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/toastr.min.js"></script>
+	<script src="../js/jquery.cookie.js"></script>
+	<script src="../js/bootstrap.min.js"></script>
+	<script src="../js/vue.js"></script>
+	<script src="../js/uuid.js"></script>
+	<script src="../js/common.js"></script>
+	<script src="../js/bootstrap-datetimepicker.min.js"></script>
+	<script src="../js/bootstrap-datetimepicker.zh-CN.js"></script>
+</head>
+
+<body>
+	<div id="app" class="contentpanel">
+		<div class="panel panel-group">
+			<div class="panel-heading">
+				<div class="panel-title">档案管理</div>
+			</div>
+			<div class="panel-body">
+				<form action="" class="form-horizontal" id="searchFrom" method="post">
+					<input type="hidden" v-model="sessionId" name="sessionId" />
+					<div class="row">
+						<div class="col-lg-8 col-sm-9 col-md-9">
+							<div class="form-group">
+								<div class="col-xs-3">
+									<input type="text" v-model="id" class="form-control" name="id" placeholder="搜索学生学号">
+								</div>
+								<div class="col-xs-3">
+									<input type="text" v-model="name" class="form-control" name="name" placeholder="搜索学生姓名">
+								</div>
+								<div class="col-xs-3">
+									<select name="specialtyType" class="form-control" v-model="specialtyType">
+										<option value="">所有专业</option>
+										<option value="语文">语文</option>
+										<option value="数学">数学</option>
+										<option value="英语">英语</option>
+										<option value="计算机">计算机</option>
+										<option value="物理">物理</option>
+									</select>
+								</div>
+								<div class="col-xs-3">
+									<select name="classroom" class="form-control" v-model="classroom">
+										<option value="">所有班级</option>
+										<option value="1">1年级1班</option>
+										<!-- <option value="数学">数学</option>
+										<option value="英语">英语</option>
+										<option value="计算机">计算机</option>
+										<option value="物理">物理</option> -->
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-4 col-md-3 col-sm-3 pull-right text-right">
+							<a href="javascript:void(0)" class="btn btn-primary" @click="search()">
+								<i class="fa fa-search"></i> 查询</a>
+							<a href="javascript:void(0)" class="btn btn-primary" @click="clear_input()">
+								<i class="fa fa-remove"></i> 清空</a>
+							<a href="javascript:void(0)" class="btn btn-primary" @click="insertInfo()">
+								<i class="fa fa-remove"></i> 新增</a>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<div class="panel-title">学生档案表</div>
+				</div>
+				<div class="panel-body">
+					<table class="table table-stripped table-bordered text-center">
+						<thead>
+							<tr>
+								<th>学号</th>
+								<th>姓名</th>
+								<th>性别</th>
+								<th>班级</th>
+								<th>民族</th>
+								<th>专业</th>
+								<th>出生日期</th>
+								<th>入学日期</th>
+								<th>家庭住址</th>
+								<th>各科成绩</th>
+								<th>获奖情况</th>
+								<th>处分</th>
+								<th v-if="editable">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="item in showItems()">
+								<td v-html="item.id"></td>
+								<td v-html="item.name"></td>
+								<td v-html="item.gender==0?'男':'女'"></td>
+								<td v-html="classroomName(item.classroom)"></td>
+								<td v-html="nationName(item.nation)"></td>
+								<td v-html="specialtyName(item.specialty)"></td>
+								<td v-html="item.birthday"></td>
+								<td v-html="item.start_school_day"></td>
+								<td v-html="item.home_address"></td>
+								<td>
+									<button class="btn btn-primary btn-xs">查看各科成绩</button>
+								</td>
+								<td>
+									<button class="btn btn-primary btn-xs">查看获奖情况</button>
+								</td>
+								<td>
+									<button class="btn btn-primary btn-xs">查看处分情况</button>
+								</td>
+								<td>
+									<button class="btn btn-success btn-xs" @click="updateStu(item)">修改</button>
+									<button class="btn btn-danger btn-xs">删除</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="panel-footer">
+					<div class="col-lg-7 col-md-8">
+						<nav aria-label="Page navigation ">
+							<ul class="pagination">
+								<li>
+									<span>当前为第
+										<span v-html="pageIndex"></span>页,总页数为
+										<span v-html="pageCount"></span>,总记录为
+										<span v-html="items.length"></span>条,每页10条</span>&nbsp;</li>
+								<li>
+									<a href="javascript:void(0)" aria-label="Previous" id="prev" @click="changePage(1)">
+										<span aria-hidden="true">首页</span>
+									</a>
+								</li>
+								<li>
+									<a href="javascript:void(0)" aria-label="Previous" id="prev" @click="changePage(pageIndex - 1)">
+										<span aria-hidden="true">上一页</span>
+									</a>
+								</li>
+								<template v-for="index in pageCount">
+									<li v-if="index == pageIndex + 5">
+										<a href="javascript:void(0)">...</a>
+									</li>
+									<li v-if="index < pageIndex + 5 &&  index > pageIndex - 5">
+										<a href="javascript:void(0)" @click="changePage(index)" id="current" :class="index == pageIndex ? 'active' : ''">{{index}}</a>
+									</li>
+									<li v-if="index == pageIndex - 5">
+										<a href="javascript:void(0)">...</a>
+									</li>
+								</template>
+								<li disabled="disabled">
+									<a href="javascript:void(0)" aria-label="Next" id="next" @click="changePage(pageIndex + 1)">
+										<span aria-hidden="true">下一页</span>
+									</a>
+								</li>
+								<li disabled="disabled">
+									<a href="javascript:void(0)" aria-label="Next" id="next" @click="changePage(pageCount)">
+										<span aria-hidden="true">尾页</span>
+									</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+					<div class="col-lg-4 col-md-3 col-lg-offset-1">
+						<nav aria-label="Page navigation ">
+							<ul class="pagination pull-right">
+								<li>
+									<a>跳转到</a>
+								</li>
+								<li>
+									<a style="padding: 0px;border: 0px;">
+										<input type="number" class="form-control" style="display: inline-block;width: 70px;" v-model="inputPageIndex" id="inputPageIndex"
+										/>
+									</a>
+								</li>
+								<li>
+									<a href="javascript:void(0);" @click="changePage(inputPageIndex)">确认</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+			</div>
 		</div>
-	</body>
-	<script>
-		var toastr = parent.toastr;
-		var app = new Vue({
-			el: '#app',
-			data: {
-				sessionId:parent.app.sessionId,
-				baseUrl:SERVER_ADDRESS
+		<!-- 模态框 -->
+		<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h4 class="modal-title" id="myModalLabel">学生信息</h4>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<form action="" method="post" id="updateForm">
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>学号：</label>
+									</div>
+									<div class="col-md-8">
+										<input type="text" class="form-control" readonly="readonly" v-model="u_id" name="id" />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>姓名：</label>
+									</div>
+									<div class="col-md-8">
+										<input type="text" class="form-control" v-model="u_name" name="name" />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>性别：</label>
+									</div>
+									<div class="col-md-8">
+										<!-- <input type="text" class="form-control" v-model="u_gender" name="gender" /> -->
+										<select class="form-control" v-model="u_gender" name="gender">
+											<option value="0">男</option>
+											<option value="1">女</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>班级：</label>
+									</div>
+									<div class="col-md-8">
+										<!-- <input type="text" class="form-control" v-model="u_classroom" name="classroom" /> -->
+										<select class="form-control" v-model="u_classroom" name="classroom">
+											<template v-for="item in classes">
+												<option v-bind:value="item.id" v-html="item.classname"></option>
+											</template>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>民族：</label>
+									</div>
+									<div class="col-md-8">
+										<select class="form-control" v-model="u_nation" name="nation">
+											<template v-for="item in nations">
+												<option v-bind:value="item.id" v-html="item.nation_name"></option>
+											</template>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>专业：</label>
+									</div>
+									<div class="col-md-8">
+										<select class="form-control" v-model="u_specialty" name="specialty">
+											<template v-for="item in specialties">
+												<option v-bind:value="item.id" v-html="item.specialty_name"></option>
+											</template>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>出生日期：</label>
+									</div>
+									<div class="col-md-8">
+										<input type="text" class="form-control form-datetime" v-model="u_birthday" name="birthday" readonly="readonly" />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>入学日期：</label>
+									</div>
+									<div class="col-md-8">
+										<input type="text" class="form-control form-date" v-model="u_start_school_day" name="start_school_day" readonly="readonly" />
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-md-3">
+										<label>家庭住址：</label>
+									</div>
+									<div class="col-md-8">
+										<input type="text" class="form-control" v-model="u_home_address" name="home_address" />
+									</div>
+								</div>
+							</form>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+						<button type="button" class="btn btn-primary">保存</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</body>
+<script>
+	var toastr = parent.toastr;
+	//日期插件
+	
+	var classes =  [{id:1,classname:'一年级一班'}];
+	var specialties =  [{id: 1, specialty_name: '数学'},
+						{id: 2, specialty_name: '英语'},
+						{id: 3, specialty_name: '语文'},
+						{id: 4, specialty_name: '计算机'},
+						{id: 5, specialty_name: '物理'}];
+	var nations =  [{id:1, nation_name:'汉族'},
+					{id:2, nation_name:'壮族'},
+					{id:3, nation_name:'满族'},
+					{id:4, nation_name:'回族'}];
+	var students = [{id:1,name:'菠萝',gender:0,classroom:1,specialty:1,nation:1,birthday:'1999-09-09',start_school_day:'2018-01-01',home_address:'四川省成都市'}, 
+					{id:2,name:'菠萝',gender:0,classroom:1,specialty:4,nation:2,birthday:'1999-09-09',start_school_day:'2018-01-01',home_address:'四川省成都市'}, 
+					{id:3,name:'菠萝',gender:0,classroom:1,specialty:4,nation:3,birthday:'1999-09-09',start_school_day:'2018-01-01',home_address:'四川省成都市'}];
+	var app = new Vue({
+		el: '#app',
+		data: {
+			sessionId: parent.app.sessionId, //cookie中的个人信息
+			SERVER_ADDRESS: SERVER_ADDRESS, //服务器请求地址
+			VIEW_ADDRESS: VIEW_ADDRESS, //页面的地址
+			BASE_ADDRESS: BASE_ADDRESS, //页面服务器地址
+			id: '', //学生学号
+			specialtyType: '', //专业类型
+			name: '', //学生姓名
+			classroom: '', //班级
+			items: students, //数据
+			editable: true, //是否可以编辑数据
+			pageIndex: 1, //当前页面页标
+			targetPageIndex: 1, //跳转到的目标页标
+			inputPageIndex: 1,
+			pageCount: Math.ceil(students.length / 10), //总页数
+			u_id: 0	,//编辑的id
+			u_name:'',//编辑的姓名
+			u_gender:'',//编辑的性别
+			u_classroom:'',//编辑的班级
+			u_nation:'',//编辑的民族
+			u_birthday:'',//编辑的出生日期
+			u_start_school_day:'',//编辑的开学日期
+			u_home_address:'',		//编辑的家庭地址
+			u_specialty:'',	//编辑的专业
+			classes: classes,	//班级
+			nations: nations,	//民族
+			specialties:specialties//专业
+		},
+		methods: {
+			//翻页
+			changePage: function (index) {
+				this.targetPageIndex = index;
+				// this.pageIndex = index;
+				// this.showItems();
 			},
-			methods:{
-				
+			//展示数据
+			showItems: function () {
+				if (this.targetPageIndex > this.pageCount || this.targetPageIndex <= 0) {
+					// this.pageIndex = 1;
+					this.targetPageIndex = this.pageIndex;
+					toastr.error("获取翻页数据错误！");
+					return this.items.slice((this.pageIndex - 1) * 10, this.pageIndex * 10);
+				}
+				this.pageIndex = this.targetPageIndex;
+				var showItems = this.items.slice((this.pageIndex - 1) * 10, this.pageIndex * 10)
+				return showItems;
 			},
-			created: function(){
-				
+			//清空表单
+			clear_input: function () {
+				$('#searchFrom')[0].reset();
+			},
+			//按条件查询信息
+			search: function () {
+				//TODO dopost
+			},
+			updateStu: function(stu){
+				this.u_id=stu.id;
+				this.u_name = stu.name;
+				this.u_gender = stu.gender;
+				this.u_classroom = stu.classroom;
+				this.u_nation = stu.nation;//编辑的民族
+				this.u_birthday = stu.birthday;//编辑的出生日期
+				this.u_start_school_day = stu.start_school_day;//编辑的开学日期
+				this.u_home_address = stu.home_address;		//编辑的家庭地址
+				this.u_specialty = stu.specialty;	//编辑的专业
+				$('#myModal').modal('show');
+			},
+			//根据classroom的id获取classroom名称
+			classroomName: function(classId){
+				for(var i in this.classes){
+					if(this.classes[i].id == classId){
+						return this.classes[i].classname;
+					}
+				}
+			},
+			nationName: function(nationId){
+				for(var i in this.nations){
+					if(this.nations[i].id == nationId){
+						return this.nations[i].nation_name;
+					}
+				}
+			},
+			specialtyName(specialtyId){
+				for(var i in this.specialties){
+					if(this.specialties[i].id == specialtyId){
+						return this.specialties[i].specialty_name;
+					}
+				}
 			}
-		});
-		
-	</script>
+		},
+		created: function () {
+			$(".form-datetime").datetimepicker({
+				format: 'yyyy-mm-dd HH:mm:ss', //显示格式
+				todayHighlight: 1, //今天高亮
+				minView: 0, //设置只显示到月份
+				startView: 2,
+				forceParse: 0,
+				showMeridian: 1,
+				autoclose: 1, //选择后自动关闭
+				language:'zh-CN',
+				minuteStep: 1
+			});
+			$(".form-date").datetimepicker({
+				format: 'yyyy-mm-dd', //显示格式
+				todayHighlight: 1, //今天高亮
+				minView: 2, //设置只显示到月份
+				startView: 2,
+				forceParse: 0,
+				showMeridian: 1,
+				autoclose: 1, //选择后自动关闭
+				language:'zh-CN',
+				minuteStep: 1
+			});
+		}
+	});
+</script>
+
 </html>
