@@ -2,10 +2,20 @@
 <html>
 	<head>
 		<meta charset="utf-8"/>
+		<meta http-equiv="Expires" content="0">
+		<meta http-equiv="Pragma" content="no-cache">
+		<meta http-equiv="Cache-control" content="no-cache">
+		<meta http-equiv="Cache" content="no-cache">
 		<link href="../css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../css/toastr.min.css" rel="stylesheet" />
+		<link href="../element-ui@2.4.6/lib/theme-chalk/index.css" rel="stylesheet" />
 		<style>
-			
+			.table thead tr th{
+				text-align: center;
+			}
+			.el-date-editor{
+				width: 100% !important;
+			}
 		</style>
 		<script src="../js/jquery.min.js"></script>
 		<script src="../js/toastr.min.js"></script>
@@ -13,26 +23,245 @@
 		<script src="../js/bootstrap.min.js"></script>
 		<script src="../js/vue.js"></script>
 		<script src="../js/uuid.js"></script>
-		<script src="../js/common.js"></script>
+		<script src="../js/common.js"></script>	
+		<script src="../element-ui@2.4.6/lib/index.js"></script>
 	</head>
 	<body>
-		<div id="app">
-			
+		<div id="app" class="contentpanel">
+			<div class="panel panel-group">
+				<div class="panel-heading">
+					<h3 class="panel-title">缴费管理</h3>
+				</div>
+				<div class="panel-body">
+					<form action="" class="form-horizontal" id="searchFrom" method="post">
+						<input type="hidden" v-model="sessionId" name ="sessionId"/>
+						<div class="row">
+							<div class="col-sm-9 col-md-9">
+								<div class="form-group">
+									<div class="col-xs-3">
+										<select name="type" class="form-control" v-model="type">
+											<option value="">所有收费类型</option>
+											<template v-for="item in types">
+												<option v-bind:value="item.id" v-html="item.name"></option>
+											</template>
+										</select>
+									</div>
+									<div class="col-xs-3">
+										<select name="addBy" class="form-control" v-model="addBy">
+											<option value="">所有添加人</option>
+											<template v-for="item in managers">
+												<option v-bind:value="item.id" v-html="item.managerName"></option>
+											</template>
+										</select>
+									</div>
+									<div class="col-xs-3">
+										<el-date-picker v-model="start_date" name="start_date" type="date" placeholder="添加时间"></el-date-picker>
+									</div>
+									<div class="col-xs-3">
+										<el-date-picker v-model="end_date" name="end_date" type="date" placeholder="添加时间"></el-date-picker>
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-3 col-md-3 pull-right text-right">
+								<a href="javascript:void(0)" class="btn btn-primary" @click="search()"><i class="fa fa-search"></i> 查询</a>
+								<a href="javascript:void(0)" class="btn btn-primary" @click="clear_input()"><i class="fa fa-remove"></i> 清空</a>
+								<a href="javascript:void(0)" class="btn btn-primary" @click="insertInfo()"><i class="fa fa-remove"></i> 新增收费项</a>
+							</div>
+						</div>
+						<!-- row-->
+					</form>
+				</div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<div class="panel-title">班级信息表</div>
+					</div>
+					<div class="panel-body">
+						<table class="table table-stripped table-bordered text-center">
+							<thead>
+								<tr>
+									<th>编号</th>
+									<th>收费类型</th>
+									<th>缴费金额</th>
+									<th>添加时间</th>
+									<th>缴费对象</th>
+									<th>备注信息</th>
+									<th v-if="editable">操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="item in showItems()">
+									<td v-html="item.id"></td>
+									<td v-html="typeName(item.type)"></td>
+									<td v-html="item.money"></td>
+									<td v-html="item.add_time"></td>
+									<td v-html="item.scopes"></td>
+									<td v-html="item.tips"></td>
+									<td v-if="editable" style="width: 15%;">
+										<div class="btn btn-danger btn-xs">删除</div>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="panel-footer">
+						<div class="col-lg-7 col-md-8">
+							<nav aria-label="Page navigation ">
+								<ul class="pagination">
+									<li><span>当前为第<span v-html="pageIndex"></span>页,总页数为<span v-html="pageCount"></span>,总记录为<span v-html="items.length"></span>条,每页10条</span>&nbsp;</li>
+									<li>
+										<a href="javascript:void(0)" aria-label="Previous" id="prev" @click="changePage(1)">
+											<span aria-hidden="true">首页</span>
+										</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" aria-label="Previous" id="prev" @click="changePage(pageIndex - 1)">
+											<span aria-hidden="true">上一页</span>
+										</a>
+									</li>
+									<template v-for="index in pageCount">
+										<li v-if="index == pageIndex + 5"><a href="javascript:void(0)">...</a></li>
+										<li v-if="index < pageIndex + 5 &&  index > pageIndex - 5">
+											<a href="javascript:void(0)" @click="changePage(index)" id="current" :class="index == pageIndex ? 'active' : ''">{{index}}</a>
+										</li>
+										<li v-if="index == pageIndex - 5"><a href="javascript:void(0)">...</a></li>
+									</template>
+									<li disabled="disabled">
+										<a href="javascript:void(0)" aria-label="Next" id="next" @click="changePage(pageIndex + 1)">
+											<span aria-hidden="true">下一页</span>
+										</a>
+									</li>
+									<li disabled="disabled">
+										<a href="javascript:void(0)" aria-label="Next" id="next" @click="changePage(pageCount)">
+											<span aria-hidden="true">尾页</span>
+										</a>
+									</li>
+								</ul>
+							</nav>
+						</div>
+						<div class="col-lg-4 col-md-4 col-lg-offset-1">
+							<nav aria-label="Page navigation ">
+								<ul class="pagination pull-right">
+									<li><a>跳转到</a></li>
+									<li>
+										<a style="padding: 0px;border: 0px;">
+											<input type="number" class="form-control" style="display: inline-block;width: 70px;" v-model="inputPageIndex" id="inputPageIndex" />
+										</a>
+									</li>
+									<li><a href="javascript:void(0);" @click="changePage(inputPageIndex)">确认</a></li>
+								</ul>
+							</nav>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</body>
 	<script>
 		var toastr = parent.toastr;
+		var payments = [{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'},
+						{id:1,type:1,money:200.00,tips:'一年级一班上学期学费', scopes:"一年级一班",add_time:'2018-01-01'}];
+		
+		var managers = [{id: 1, managerName: 'admin'},{id: 2, managerName: 'pineapple'},{id: 3, managerName:'pinea'}];
+		var types = [{id: 1, name: '学费'}, {id: 2, name: '书本费'},{id: 3, name: '其他费用'}];
+		var grades = [{id: 1, gradeName: '一年级'},{id: 2, gradeName: '二年级'},{id: 3, gradeName:'三年级'}];
+		var classes = [{id: 1, className: '一班'}, {id: 2, className: '二班'},{id: 3, className: '三班'}];
 		var app = new Vue({
 			el: '#app',
 			data: {
-				sessionId:parent.app.sessionId,
-				baseUrl:SERVER_ADDRESS
+				sessionId:parent.app.sessionId,		//cookie中的个人信息
+				SERVER_ADDRESS:SERVER_ADDRESS,		//服务器请求地址
+				VIEW_ADDRESS:VIEW_ADDRESS,			//页面的地址
+				BASE_ADDRESS:BASE_ADDRESS,			//页面服务器地址
+				id: '',
+				start_date:'',							//班级
+				end_date:'',							//年级
+				addBy: '',
+				type: '',
+				items:payments,						//数据
+				user: parent.app.user,				//用户信息
+				editable: true,						//是否可以编辑数据
+				pageIndex:1,						//当前页面页标
+				targetPageIndex:1,					//跳转到的目标页标
+				inputPageIndex: 1,
+				pageCount:Math.ceil(payments.length/10),//总页数
+				managers: managers,
+				classes : classes,
+				types: types
 			},
 			methods:{
-				
+				//翻页
+				changePage:function(index){
+					this.targetPageIndex = index;
+					// this.pageIndex = index;
+					// this.showItems();
+				},
+				//展示数据
+				showItems:function(){
+					if(this.targetPageIndex > this.pageCount || this.targetPageIndex <= 0){
+						// this.pageIndex = 1;
+						this.targetPageIndex = this.pageIndex;
+						toastr.error("获取翻页数据错误！");
+						return this.items.slice((this.pageIndex - 1) * 10, this.pageIndex * 10);
+					}
+					this.pageIndex = this.targetPageIndex;
+					var showItems = this.items.slice((this.pageIndex - 1) * 10, this.pageIndex * 10)
+					return showItems;
+				},
+				//清空表单
+				clear_input: function(){
+					$('#searchFrom')[0].reset();
+				},
+				//按条件查询信息
+				search: function(){
+					//TODO dopost 根据url参数查询
+				},
+				//获取url参数
+				getUrlParam: function (name) {
+					var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+					var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+					if (r != null) return unescape(r[2]); return null; //返回参数值
+				},
+				managerName: function(id){
+					for(i in managers){
+						if(managers[i].id == id){
+							return managers[i].managerName;
+						}
+					}
+				},
+				gradeName: function(id){
+					for(i in grades){
+						if(grades[i].id == id){
+							return grades[i].gradeName;
+						}
+					}
+				},
+				className: function(id){
+					for(i in classes){
+						if(classes[i].id == id){
+							return classes[i].className;
+						}
+					}
+				},
+				typeName: function(id){
+					for(i in types){
+						if(types[i].id == id){
+							return types[i].name;
+						}
+					}
+				}
 			},
 			created: function(){
-				
+				//TODO 获取后台数据,获取是否显示操作列表
 			}
 		});
 		

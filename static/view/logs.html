@@ -8,9 +8,13 @@
 		<meta http-equiv="Cache" content="no-cache">
 		<link href="../css/bootstrap.min.css" rel="stylesheet" />
 		<link href="../css/toastr.min.css" rel="stylesheet" />
+		<link href="../element-ui@2.4.6/lib/theme-chalk/index.css" rel="stylesheet" />
 		<style>
 			.table thead tr th{
 				text-align: center;
+			}
+			.el-date-editor{
+				width: 100% !important;
 			}
 		</style>
 		<script src="../js/jquery.min.js"></script>
@@ -20,12 +24,13 @@
 		<script src="../js/vue.js"></script>
 		<script src="../js/uuid.js"></script>
 		<script src="../js/common.js"></script>
+		<script src="../element-ui@2.4.6/lib/index.js"></script>
 	</head>
 	<body>
 		<div id="app" class="contentpanel">
 			<div class="panel panel-group">
 				<div class="panel-heading">
-					<h3 class="panel-title">成绩管理</h3>
+					<h3 class="panel-title">日志记录</h3>	
 				</div>
 				<div class="panel-body">
 					<form action="" class="form-horizontal" id="searchFrom" method="post">
@@ -34,35 +39,16 @@
 							<div class="col-sm-9 col-md-9">
 								<div class="form-group">
 									<div class="col-xs-3">
-										<input type="text" v-model="id" class="form-control" name="id" placeholder="搜索学生学号">
+										<el-date-picker v-model="start_date" name="start_date" type="date" placeholder="开始时间"></el-date-picker>
 									</div>
 									<div class="col-xs-3">
-										<input type="text" v-model="name" class="form-control" name="name" placeholder="搜索学生姓名">
-									</div>
-									<div class="col-xs-3">
-										<select name="coursesType" class="form-control" v-model="coursesType">
-											<option value="">所有学科</option>
-											<option value="语文">语文</option>
-											<option value="数学">数学</option>
-											<option value="英语">英语</option>
-											<option value="计算机">计算机</option>
-											<option value="物理">物理</option>
-										</select>
-									</div>
-									<div class="col-xs-3">
-										<select name="scoreScope" class="form-control" v-model="scoreScope">
-											<option value="">所有分数区间</option>
-											<option value="1">80~100</option>
-											<option value="2">60~80</option>
-											<option value="3">0~60</option>
-										</select>
+										<el-date-picker v-model="end_date" name="end_date" type="date" placeholder="结束时间"></el-date-picker>
 									</div>
 								</div>
 							</div>
 							<div class="col-sm-3 col-md-3 pull-right text-right">
 								<a href="javascript:void(0)" class="btn btn-primary" @click="search()"><i class="fa fa-search"></i> 查询</a>
 								<a href="javascript:void(0)" class="btn btn-primary" @click="clear_input()"><i class="fa fa-remove"></i> 清空</a>
-								<a href="javascript:void(0)" class="btn btn-primary" @click="insertInfo()"><i class="fa fa-remove"></i> 新增</a>
 							</div>
 						</div>
 						<!-- row-->
@@ -70,7 +56,7 @@
 				</div>
 				<div class="panel panel-default">
 					<div class="panel-heading">
-						<div class="panel-title">学生成绩表</div>
+						<div class="panel-title">系统日志表</div>
 					</div>
 					<div class="panel-body">
 						<table class="table table-stripped table-bordered text-center">
@@ -193,10 +179,8 @@
 				SERVER_ADDRESS:SERVER_ADDRESS,		//服务器请求地址
 				VIEW_ADDRESS:VIEW_ADDRESS,			//页面的地址
 				BASE_ADDRESS:BASE_ADDRESS,			//页面服务器地址
-				id: '',
-				coursesType:'',						//课程类型
-				name:'',							//学生姓名
-				scoreScope:'',						//分数区间
+				start_date:'',						//开始日期
+				end_date:'',						//结束日期
 				items:students,						//数据
 				user: parent.app.user,				//用户信息
 				editable: true,						//是否可以编辑数据

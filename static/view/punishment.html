@@ -27,7 +27,7 @@
 	<div id="app" class="contentpanel">
 		<div class="panel panel-group">
 			<div class="panel-heading">
-				<div class="panel-title">获奖情况管理</div>
+				<div class="panel-title">处分情况管理</div>
 			</div>
 			<div class="panel-body">
 				<form action="" class="form-horizontal" id="searchFrom" method="post">
@@ -86,7 +86,8 @@
 								<th>姓名</th>
 								<th>性别</th>
 								<th>班级</th>
-								<th>获奖情况</th>
+								<th>处分级别</th>
+								<th style="width: 35%;">原因</th>
 								<th v-if="editable">操作</th>
 							</tr>
 						</thead>
@@ -96,9 +97,19 @@
 								<td>菠萝</td>
 								<td>男</td>
 								<td>1年级1班</td>
-								<td>蓝桥杯一等奖</td>
 								<td>
-									<button class="btn btn-success btn-xs">修改</button>
+									<select class="form-control">
+										<template v-for="punishment in punishmentType">
+											<option v-bind:value="punishment.id" v-html="punishment.name"
+											 v-bind:selected="punishment.id==item.punishmentId"></option>
+										</template>
+									</select>
+								</td>
+								<td style="width: 35%;">
+									<textarea class="form-control text-center" rows="5" cols="20" style="height: 50px;overflow-y: auto;width: 100%;">寝室抽烟</textarea>
+								</td>
+								<td>
+									<button class="btn btn-primary btn-xs">修改</button>
 									<button class="btn btn-danger btn-xs">删除</button>
 								</td>
 							</tr>
@@ -173,7 +184,9 @@
 </body>
 <script>
 	var toastr = parent.toastr;
-	var students = [{}, {}, {}];
+	var punishmentType = [{id:1, name: '警告处分'},
+						  {id:2, name: '记过处分'}]
+	var students = [{punishmentId:1}, {punishmentId:1}, {punishmentId:2}];
 	var app = new Vue({
 		el: '#app',
 		data: {
@@ -190,7 +203,8 @@
 			pageIndex: 1, //当前页面页标
 			targetPageIndex: 1, //跳转到的目标页标
 			inputPageIndex: 1,
-			pageCount: Math.ceil(students.length / 10) //总页数
+			pageCount: Math.ceil(students.length / 10), //总页数
+			punishmentType: punishmentType		//处分类型
 		},
 		methods: {
 			//翻页

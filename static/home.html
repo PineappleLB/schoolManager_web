@@ -3,6 +3,10 @@
 <head>
 	<title>学籍管理系统</title>
 	<meta charset="utf-8" />
+	<meta http-equiv="Expires" content="0">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Cache-control" content="no-cache">
+	<meta http-equiv="Cache" content="no-cache">
 	<link rel="stylesheet" href="css/bootstrap.min.css" />
 	<link rel="stylesheet" href="css/toastr.min.css" />
 	<style>
@@ -73,7 +77,7 @@
 					  </button>
 					  <ul class="dropdown-menu">
 						<li><a href="javascript:void(0);" @click="exit()">注销</a></li>
-						<li><a href="javascript:void(0);" @click="exit()">退出系统</a></li>
+						<li><a href="javascript:void(0);" @click="repassword()">修改密码</a></li>
 					  </ul>
 					</div>
 				</div>
@@ -83,8 +87,8 @@
 			<div class="" style="height: 100%;">
 				<div class="col-lg-2" style="height: 100%;background: lightgray;">
 					<ul class="nav nav-pills nav-stacked nav-bracket">
-						<li class="active"  @click="doAction(VIEW_ADDRESS+'/homeFrame.html', $event)"><a href="javascript:void(0);"><i class="glyphicon glyphicon-home"></i> <span>主页</span></a></li>
-						<li class="nav-parent" v-for="item in getMenuList()" @click="doAction(VIEW_ADDRESS + item.url, $event)">
+						<li class="active"  @click="doAction('view/homeFrame.html', $event)"><a href="javascript:void(0);"><i class="glyphicon glyphicon-home"></i> <span>主页</span></a></li>
+						<li class="nav-parent" v-for="item in getMenuList()" @click="doAction('view'+item.url, $event)">
 							<a href="javascript:void(0);"><i class="glyphicon glyphicon-tags"></i> <span v-html="item.mname"></span></a>
 						</li>
 					</ul>
@@ -112,10 +116,7 @@
 		data: {
 			sessionId:"",
 			menu:'',
-			user: "",
-			SERVER_ADDRESS:SERVER_ADDRESS,
-			VIEW_ADDRESS:VIEW_ADDRESS,
-			BASE_ADDRESS:BASE_ADDRESS
+			user: ""
 		},
 		methods:{
 			//获取菜单列表
@@ -129,7 +130,7 @@
 						sessionId: this.sessionId
 					},function(resp){
 						if(resp.code === SUCCESS_CODE){
-							console.log(resp.data)
+							// console.log(resp.data)
 							menu = resp.data;
 						} else {
 							toastr.error(resp.message);
@@ -146,7 +147,7 @@
 				var source = event.currentTarget;
 				$('.active').removeClass('active');
 				$(source).addClass('active');
-				console.log(url);
+				// console.log(url);
 				$('#iframe').attr('src',url);
 			},
 			exit: function(){
@@ -160,6 +161,10 @@
 					}
 				})
 				
+			},
+			//改密码
+			repassword: function(){
+				window.open(BASE_ADDRESS + "/repassword.html");
 			}
 		},
 		created: function(){

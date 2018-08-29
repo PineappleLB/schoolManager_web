@@ -3,9 +3,13 @@
 
 <head>
 	<meta charset="utf-8" />
+	<meta http-equiv="Expires" content="0">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Cache-control" content="no-cache">
+	<meta http-equiv="Cache" content="no-cache">
 	<link href="../css/bootstrap.min.css" rel="stylesheet" />
 	<link href="../css/toastr.min.css" rel="stylesheet" />
-	<link href="../css/bootstrap-datetimepicker.css" rel="stylesheet" />
+	<link href="../element-ui@2.4.6/lib/theme-chalk/index.css" rel="stylesheet" />
 	<style>
 		.table thead tr th {
 			text-align: center;
@@ -20,6 +24,9 @@
 		.row form .form-group{
 			height: 40px;
 		}
+		.el-date-editor{
+			width: 100% !important;
+		}
 	</style>
 	<script src="../js/jquery.min.js"></script>
 	<script src="../js/toastr.min.js"></script>
@@ -28,8 +35,7 @@
 	<script src="../js/vue.js"></script>
 	<script src="../js/uuid.js"></script>
 	<script src="../js/common.js"></script>
-	<script src="../js/bootstrap-datetimepicker.min.js"></script>
-	<script src="../js/bootstrap-datetimepicker.zh-CN.js"></script>
+	<script src="../element-ui@2.4.6/lib/index.js"></script>
 </head>
 
 <body>
@@ -118,13 +124,13 @@
 								<td v-html="item.start_school_day"></td>
 								<td v-html="item.home_address"></td>
 								<td>
-									<button class="btn btn-primary btn-xs">查看各科成绩</button>
+									<button class="btn btn-primary btn-xs" @click="gotoScores(item.id)">查看各科成绩</button>
 								</td>
 								<td>
-									<button class="btn btn-primary btn-xs">查看获奖情况</button>
+									<button class="btn btn-primary btn-xs" @click="gotoAward(item.id)">查看获奖情况</button>
 								</td>
 								<td>
-									<button class="btn btn-primary btn-xs">查看处分情况</button>
+									<button class="btn btn-primary btn-xs" @click="gotoPunishment(item.id)">查看处分情况</button>
 								</td>
 								<td>
 									<button class="btn btn-success btn-xs" @click="updateStu(item)">修改</button>
@@ -134,6 +140,7 @@
 						</tbody>
 					</table>
 				</div>
+				 <!-- 翻页控件 -->
 				<div class="panel-footer">
 					<div class="col-lg-7 col-md-8">
 						<nav aria-label="Page navigation ">
@@ -281,7 +288,8 @@
 										<label>出生日期：</label>
 									</div>
 									<div class="col-md-8">
-										<input type="text" class="form-control form-datetime" v-model="u_birthday" name="birthday" readonly="readonly" />
+										<el-date-picker v-model="u_birthday" name="birthday" type="datetime" placeholder="选择出生日期"></el-date-picker>
+										<!-- <input type="text" class="form-control form-datetime" v-model="u_birthday" name="birthday" readonly="readonly" /> -->
 									</div>
 								</div>
 								<div class="form-group">
@@ -289,7 +297,8 @@
 										<label>入学日期：</label>
 									</div>
 									<div class="col-md-8">
-										<input type="text" class="form-control form-date" v-model="u_start_school_day" name="start_school_day" readonly="readonly" />
+										<el-date-picker v-model="u_start_school_day" name="start_school_day" type="date" placeholder="选择入学日期"></el-date-picker>
+										<!-- <input type="text" class="form-control form-date" v-model="u_start_school_day" name="start_school_day" readonly="readonly" /> -->
 									</div>
 								</div>
 								<div class="form-group">
@@ -414,37 +423,27 @@
 					}
 				}
 			},
-			specialtyName(specialtyId){
+			specialtyName: function(specialtyId){
 				for(var i in this.specialties){
 					if(this.specialties[i].id == specialtyId){
 						return this.specialties[i].specialty_name;
 					}
 				}
+			},
+			//查看各科成绩
+			gotoScores: function(id){
+				location.href=VIEW_ADDRESS + "/scores.html?id="+id;
+			},
+			//查看获奖情况
+			gotoAward: function(id){
+				location.href=VIEW_ADDRESS + "/award.html?id="+id;
+			},
+			//查看处分情况
+			gotoPunishment: function(id){
+				location.href=VIEW_ADDRESS + "/punishment.html?id="+id;
 			}
 		},
 		created: function () {
-			$(".form-datetime").datetimepicker({
-				format: 'yyyy-mm-dd HH:mm:ss', //显示格式
-				todayHighlight: 1, //今天高亮
-				minView: 0, //设置只显示到月份
-				startView: 2,
-				forceParse: 0,
-				showMeridian: 1,
-				autoclose: 1, //选择后自动关闭
-				language:'zh-CN',
-				minuteStep: 1
-			});
-			$(".form-date").datetimepicker({
-				format: 'yyyy-mm-dd', //显示格式
-				todayHighlight: 1, //今天高亮
-				minView: 2, //设置只显示到月份
-				startView: 2,
-				forceParse: 0,
-				showMeridian: 1,
-				autoclose: 1, //选择后自动关闭
-				language:'zh-CN',
-				minuteStep: 1
-			});
 		}
 	});
 </script>
